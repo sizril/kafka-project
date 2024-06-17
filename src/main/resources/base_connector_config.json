@@ -1,0 +1,21 @@
+{
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:mysql://172.25.0.107:3306/targetDB",
+    "connection.user": "KafkaUser",
+    "connection.password": "shubiburger",
+    "dialect.name": "MySqlDatabaseDialect",
+    "insert.mode": "insert",
+    "pk.mode":"none",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "delete.enabled": "false",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "true",
+    "errors.tolerance": "all",
+    "errors.log.enable": "true",
+    "errors.log.include.messages": "true",
+    "tasks.max": "1"
+  }
+}
