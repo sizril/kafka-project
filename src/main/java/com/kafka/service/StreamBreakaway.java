@@ -2,6 +2,7 @@ package com.kafka.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
@@ -20,7 +21,6 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Service;
 
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class StreamBreakaway {
@@ -29,9 +29,11 @@ public class StreamBreakaway {
 
     public void streamsBreakaway(int seconds) {
 
+        String mainTopic = "main_logs";
+
         Properties props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "210.178.40.82:29092");
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams_breakaway");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "breakaway_stream_"+String.valueOf(seconds)+"sec");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -42,7 +44,7 @@ public class StreamBreakaway {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName());
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, String> stream = builder.stream("test");
+        KStream<String, String> stream = builder.stream(mainTopic);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -74,14 +76,25 @@ public class StreamBreakaway {
                                 .withValueSerde(Serdes.Long())
                 );
 
-        // 잠재적 이탈 사용자 필터링
+        // 이탈 사용자 필터링
         long durationInSeconds = seconds;
         KStream<String, String> potentialChurnUsers = userLastActivity
                 .toStream()
                 .filter((user, lastActivity) -> (System.currentTimeMillis() / 1000) - lastActivity > durationInSeconds)
-                .mapValues((user, lastActivity) -> "User " + user + " might be churning.");
+                .mapValues((user, lastActivity) -> {
+                    try {
+                        ObjectNode resultNode = objectMapper.createObjectNode();
+                        resultNode.put("user", user);
+                        resultNode.put("timestamp", lastActivity);
+                        return objectMapper.writeValueAsString(resultNode);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .filter((key, value) -> value != null); // null값 필터링
 
-        potentialChurnUsers.to("test_stream", Produced.with(Serdes.String(), Serdes.String()));
+        potentialChurnUsers.to("breakaway_stream_"+String.valueOf(seconds)+"sec", Produced.with(Serdes.String(), Serdes.String()));
 
         streams = new KafkaStreams(builder.build(), props);
         streams.start();

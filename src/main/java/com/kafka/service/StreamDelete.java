@@ -23,9 +23,12 @@ public class StreamDelete {
 
 
     public void streamsDelete(String columnName) {
+
+        String mainTopic = "main_logs";
+
         Properties props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "210.178.40.82:29092");
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG,"streams_delete");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG,"column_delete_stream_"+columnName);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -36,7 +39,7 @@ public class StreamDelete {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName());
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, String> stream = builder.stream("test");
+        KStream<String, String> stream = builder.stream(mainTopic);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,7 +56,7 @@ public class StreamDelete {
             }
         });
 
-        modifiedStream.to("test_stream",Produced.with(Serdes.String(),Serdes.String()));
+        modifiedStream.to("delete_stream_"+columnName,Produced.with(Serdes.String(),Serdes.String()));
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
         streams.start();
 

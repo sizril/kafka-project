@@ -20,10 +20,10 @@ import java.util.Properties;
 public class InjectSchema {
     public String injecting(String topic){
 
-        String processedTopic = topic + "-processed";
+        String processedTopic = topic + "_processed";
 
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "SchemaInjection-"+topic);
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, topic + "_schemaInjection");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "210.178.40.82:29092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
@@ -51,7 +51,7 @@ public class InjectSchema {
                 while (fieldNames.hasNext()) {
                     String fieldName = fieldNames.next();
                     JsonNode fieldValue = originalNode.get(fieldName);
-                    payloadNode.set(fieldName, fieldValue);
+                    payloadNode.put(fieldName, fieldValue.asText());
 
                     fieldsArray.add(objectMapper.createObjectNode()
                             .put("type", "string")

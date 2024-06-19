@@ -21,9 +21,12 @@ import java.util.Properties;
 public class StreamCondition {
 
     public void streamsCondition(String column, String operator, String condition) {
+
+        String mainTopic = "main_logs";
+
         Properties props = new Properties();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "210.178.40.82:29092");
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "streams_condition");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "filter_stream_"+operator+condition);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
@@ -34,7 +37,7 @@ public class StreamCondition {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName());
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, String> stream = builder.stream("test");
+        KStream<String, String> stream = builder.stream(mainTopic);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -60,7 +63,7 @@ public class StreamCondition {
             }
         });
 
-        filteredStream.to("test_stream", Produced.with(Serdes.String(), Serdes.String()));
+        filteredStream.to("filter_stream_"+operator+condition, Produced.with(Serdes.String(), Serdes.String()));
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
         streams.start();
 

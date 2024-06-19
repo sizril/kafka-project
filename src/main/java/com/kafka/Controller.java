@@ -41,12 +41,12 @@ public class Controller {
         this.injectSchema = injectSchema;
     }
 
-    @PostMapping("/addColumn/{columnName}")
+    @PostMapping("/column/{columnName}")
     public void addColumn(@PathVariable String columnName) {
         add.streamsAdd(columnName);
     }
 
-    @PostMapping("/deleteColumn/{columnName}")
+    @DeleteMapping("/column/{columnName}")
     public void deleteColumn(@PathVariable String columnName) {
         delete.streamsDelete(columnName);
     }
@@ -63,13 +63,13 @@ public class Controller {
     }
 
 
-    @PostMapping("/connector/{connectorName}/{topic}")
+    @PostMapping("/connectors/{connectorName}/{topic}")
     public void mkConnector(@PathVariable String connectorName, @PathVariable String topic) {
         String processedTopic = injectSchema.injecting(topic);
         createConnector.mkConnector(connectorName,processedTopic);
     }
 
-    @DeleteMapping("/connector/delete/{connectorName}")
+    @DeleteMapping("/connectors/{connectorName}")
     public void deleteConnector(@PathVariable String connectorName) {
         deleteConnector.deleteConnector(connectorName);
     }
