@@ -63,7 +63,7 @@ public class StreamCondition {
             }
         });
 
-        filteredStream.to("filter_stream_"+operator+condition, Produced.with(Serdes.String(), Serdes.String()));
+        filteredStream.to("filter_stream_"+condition, Produced.with(Serdes.String(), Serdes.String()));
         KafkaStreams streams = new KafkaStreams(builder.build(), props);
         streams.start();
 
